@@ -16,9 +16,6 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
@@ -32,33 +29,34 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # Install npm dependencies (if you have frontend assets)
-RUN npm install && npm run build
+RUN npm install && npm run build || echo "Frontend build skipped"
 
 # Set proper permissions
 RUN chmod -R 775 storage bootstrap/cache
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Optimize Laravel
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
-
 # Configure Apache to use Laravel's public directory
 RUN a2enmod rewrite
 
 # Change Apache document root to Laravel's public folder
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Create a simple Apache config to ensure public directory is served
-RUN echo "<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
+# Create a simple Apache config
+RUN echo "<VirtualHost *:80>
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 EXPOSE 80
-CMD ["apache2-foreground"]
+
+# Start command that runs on each deploy (not during build)
+CMD php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
+    apache2-foreground

@@ -42,7 +42,7 @@ RUN php artisan view:cache
 
 # Configure Apache
 RUN a2enmod rewrite
-COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
+#COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
 EXPOSE 80
 CMD ["apache2-foreground"]

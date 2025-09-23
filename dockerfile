@@ -2,12 +2,17 @@ FROM php:8.2-apache
 
 WORKDIR /var/www/html
 
-# Install dependencies
+# Install dependencies with all required libraries for GD
 RUN apt-get update && apt-get install -y \
-    git curl libpng-dev libonig-dev libxml2-dev zip unzip sqlite3
+    git curl libpng-dev libonig-dev libxml2-dev zip unzip sqlite3 \
+    libfreetype6-dev libjpeg62-turbo-dev libpng-dev
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring gd
+# Install PHP extensions (install gd separately with configuration)
+RUN docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring
+
+# Install GD extension with freetype and jpeg support
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

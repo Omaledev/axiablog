@@ -3,17 +3,10 @@ services:
     name: axiablog
     env: docker
     plan: free
-    region: frankfurt # <-- Changed to Frankfurt for better performance in Nigeria
+    region: frankfurt
 
-    buildCommand: |
-      apt-get update
-      apt-get install -y php php-curl php-zip php-mbstring php-xml php-pgsql composer
-      composer install --no-dev --optimize-autoloader
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-
-    startCommand:   php artisan serve --host=0.0.0.0 --port=8000
+    docker:
+      dockerfile: Dockerfile
 
     envVars:
       - key: APP_ENV
@@ -22,3 +15,5 @@ services:
         value: false
       - key: APP_KEY
         generateValue: true
+      - key: APP_URL
+        value: https://axiablog.onrender.com

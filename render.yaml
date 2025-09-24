@@ -28,7 +28,7 @@ services:
       - key: APP_DEBUG
         value: false
       - key: APP_KEY
-        value: base64:g52Up5wBnipMwAqwjxk3JYoJeJy57oiPrMhciC332TQ=
+        value: base64:b7xL3OZcPwNHwNBvGlU0UO/ctmy5n6MbPPPKL13ZZXM=
       - key: APP_URL
         value: https://axiablog.onrender.com
       - key: APP_NAME

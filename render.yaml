@@ -8,18 +8,15 @@ services:
     docker:
       dockerfile: Dockerfile
 
-    # Add build commands to ensure proper setup
     buildCommand: |
       composer install --no-dev --optimize-autoloader
-      npm install && npm run build || true
+       npm install
+       npm run build
 
-    # Clear cache on each start to pick up environment variables
     startCommand: |
       php artisan config:clear
       php artisan cache:clear
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
+      php artisan migrate --force
       apache2-foreground
 
     envVars:
@@ -32,4 +29,39 @@ services:
       - key: APP_URL
         value: https://axiablog.onrender.com
       - key: APP_NAME
-        value: My Laravel App
+        value: AXIABLOG
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: axiablog-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: axiablog-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: axiablog-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: axiablog-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: axiablog-db
+          property: password
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: MAIL_MAILER
+        value: log
+
+databases:
+  - name: axiablog-db
+    plan: free
+    region: frankfurt

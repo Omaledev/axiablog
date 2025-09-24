@@ -1,33 +1,35 @@
-envVars:
-  - key: APP_ENV
-    value: production
-  - key: APP_DEBUG
-    value: false
-  - key: APP_KEY
-    value: base64:b7xL3OZcPwNHwNBvGlU0UO/ctmy5n6MbPPPKL13ZZXM=
-  - key: APP_URL
-    value: https://axiablog.onrender.com
-  - key: APP_NAME
-    value: AXIABLOG
-  - key: DB_CONNECTION
-    value: pgsql
-  - key: DB_HOST
-    fromDatabase:
-      name: axiablog-db
-      property: host
-  - key: DB_PORT
-    fromDatabase:
-      name: axiablog-db
-      property: port
-  - key: DB_DATABASE
-    fromDatabase:
-      name: axiablog-db
-      property: database
-  - key: DB_USERNAME
-    fromDatabase:
-      name: axiablog-db
-      property: username
-  - key: DB_PASSWORD
-    fromDatabase:
-      name: axiablog-db
-      property: password
+services:
+  - type: web
+    name: axiablog
+    env: docker
+    plan: free
+    region: frankfurt
+
+    docker:
+      dockerfile: Dockerfile
+
+    # Add build commands to ensure proper setup
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      npm install && npm run build || true
+
+    # Clear cache on each start to pick up environment variables
+    startCommand: |
+      php artisan config:clear
+      php artisan cache:clear
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+      apache2-foreground
+
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        value: base64:b7xL3OZcPwNHwNBvGlU0UO/ctmy5n6MbPPPKL13ZZXM=
+      - key: APP_URL
+        value: https://axiablog.onrender.com
+      - key: APP_NAME
+        value: My Laravel App
